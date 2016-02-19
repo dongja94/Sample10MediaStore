@@ -1,7 +1,7 @@
 package com.example.dongja94.samplemediastore;
 
 import android.database.Cursor;
-import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
@@ -17,6 +17,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridView;
 import android.widget.ImageView;
+
+import com.bumptech.glide.Glide;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -40,17 +44,24 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         });
 
         gridView = (GridView)findViewById(R.id.gridView);
-        String[] from = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DISPLAY_NAME};
+        String[] from = {MediaStore.Images.Media.DATA, MediaStore.Images.Media.DISPLAY_NAME};
         int[] to = {R.id.image_thumb, R.id.text_name};
         mAdapter = new SimpleCursorAdapter(this, R.layout.view_item, null, from, to, 0);
         mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
             @Override
             public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
-                if (columnIndex == idColumn) {
-                    long id = cursor.getLong(columnIndex);
-                    Bitmap bitmap = MediaStore.Images.Thumbnails.getThumbnail(getContentResolver(), id, MediaStore.Images.Thumbnails.MINI_KIND, null);
+                if (columnIndex == dataColumn) {
+//                    long id = cursor.getLong(columnIndex);
+                    String path = cursor.getString(columnIndex);
                     ImageView iv = (ImageView)view;
-                    iv.setImageBitmap(bitmap);
+//                    Bitmap bitmap = MediaStore.Images.Thumbnails.getThumbnail(getContentResolver(), id, MediaStore.Images.Thumbnails.MINI_KIND, null);
+//                    iv.setImageBitmap(bitmap);
+
+//                    Uri uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+//                    Glide.with(MainActivity.this).load(uri).into(iv);
+                    File file = new File(path);
+                    Uri fileuri = Uri.fromFile(file);
+                    Glide.with(MainActivity.this).load(fileuri).into(iv);
                     return true;
                 }
                 return false;
@@ -64,15 +75,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     String sortOrder = MediaStore.Images.Media.DATE_ADDED + " DESC";
 
     private int idColumn = -1;
+    private int dataColumn = -1;
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         return new CursorLoader(this, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, sortOrder);
     }
 
+
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         idColumn = data.getColumnIndex(MediaStore.Images.Media._ID);
+        dataColumn = data.getColumnIndex(MediaStore.Images.Media.DATA);
         mAdapter.swapCursor(data);
     }
 
