@@ -12,15 +12,21 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -44,16 +50,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         });
 
         gridView = (GridView)findViewById(R.id.gridView);
+        gridView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
         String[] from = {MediaStore.Images.Media.DATA, MediaStore.Images.Media.DISPLAY_NAME};
         int[] to = {R.id.image_thumb, R.id.text_name};
-        mAdapter = new SimpleCursorAdapter(this, R.layout.view_item, null, from, to, 0);
+        mAdapter = new SimpleCursorAdapter(this, R.layout.view_check_item, null, from, to, 0);
         mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
             @Override
             public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
                 if (columnIndex == dataColumn) {
 //                    long id = cursor.getLong(columnIndex);
                     String path = cursor.getString(columnIndex);
-                    ImageView iv = (ImageView)view;
+                    ImageView iv = (ImageView) view;
 //                    Bitmap bitmap = MediaStore.Images.Thumbnails.getThumbnail(getContentResolver(), id, MediaStore.Images.Thumbnails.MINI_KIND, null);
 //                    iv.setImageBitmap(bitmap);
 
@@ -68,6 +75,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
         gridView.setAdapter(mAdapter);
+        Button btn = (Button)findViewById(R.id.btn_select);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SparseBooleanArray array = gridView.getCheckedItemPositions();
+                List<String> imageList = new ArrayList<String>();
+                for (int index = 0; index < array.size(); index++) {
+                    int position = array.keyAt(index);
+                    if (array.get(position)) {
+                        Cursor c = (Cursor)gridView.getItemAtPosition(position);
+                        String name = c.getString(c.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
+                        imageList.add(name);
+                    }
+                }
+                Toast.makeText(MainActivity.this, "list : " + imageList, Toast.LENGTH_SHORT).show();
+            }
+        });
         getSupportLoaderManager().initLoader(0, null ,this);
     }
 
