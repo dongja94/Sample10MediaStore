@@ -1,5 +1,6 @@
 package com.example.dongja94.samplemediastore;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,6 +24,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.sangcomz.fishbun.FishBun;
+import com.sangcomz.fishbun.define.Define;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -92,7 +95,32 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 Toast.makeText(MainActivity.this, "list : " + imageList, Toast.LENGTH_SHORT).show();
             }
         });
+
+        btn = (Button)findViewById(R.id.btn_library);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FishBun.with(MainActivity.this)
+                        .setAlbumThumnaliSize(150)//you can resize album thumnail size
+                        .setPickerCount(5)//you can restrict photo count
+                        .startAlbum();
+            }
+        });
+
         getSupportLoaderManager().initLoader(0, null ,this);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case Define.ALBUM_REQUEST_CODE:
+                if (resultCode == RESULT_OK) {
+                    List<String> path = data.getStringArrayListExtra(Define.INTENT_PATH);
+                    Toast.makeText(this, "path : " + path, Toast.LENGTH_SHORT).show();
+                    break;
+                }
+        }
     }
 
     String[] projection = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA , MediaStore.Images.Media.DISPLAY_NAME};
